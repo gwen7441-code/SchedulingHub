@@ -1,0 +1,533 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+  INVITED
+}
+
+enum RoleName {
+  INSTRUCTOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum CourseStatus {
+  DRAFT
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum DeliveryType {
+  IN_PERSON
+  VIRTUAL
+  HYBRID
+}
+
+enum AssignmentStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+  REASSIGNED
+}
+
+enum AvailabilityType {
+  AVAILABLE
+  UNAVAILABLE
+  BLOCKED
+}
+
+enum SyncState {
+  LOCAL_ONLY
+  AWAITING_INITIAL_SYNC
+  SYNCED
+  SYNC_FAILED
+  CONFLICT
+}
+
+enum IntegrationService {
+  DYNAMICS
+  SENDGRID
+  TWILIO
+  PUSH
+  DATABASE
+  REDIS
+}
+
+enum IntegrationStatus {
+  NOT_CONFIGURED
+  CONFIGURED_NOT_VALIDATED
+  CONNECTED
+  WARNING
+  ERROR
+  MAPPING_ERROR
+  CONNECTION_ERROR
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  email                 String?                @unique
+  phoneE164             String?                @unique
+  passwordHash          String?
+  mustChangePassword    Boolean                @default(false)
+  status                UserStatus             @default(ACTIVE)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  deletedAt             DateTime?
+  roles                 UserRole[]
+  instructorProfile     InstructorProfile?
+  administratorProfile  AdministratorProfile?
+  devices               Device[]
+  refreshSessions       RefreshSession[]
+  passwordResetTokens   PasswordResetToken[]
+  notifications         Notification[]
+  auditLogs             AuditLog[]             @relation("AuditActor")
+  securityEvents        SecurityEvent[]
+
+  @@index([email])
+  @@index([phoneE164])
+  @@index([status])
+}
+
+model Role {
+  id        String     @id @default(cuid())
+  name      RoleName   @unique
+  users     UserRole[]
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model InstructorProfile {
+  id             String                    @id @default(cuid())
+  userId         String                    @unique
+  firstName      String
+  lastName       String
+  employeeId     String                    @unique
+  status         UserStatus                @default(ACTIVE)
+  externalId     String?
+  syncState      SyncState                 @default(LOCAL_ONLY)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  user           User                      @relation(fields: [userId], references: [id])
+  qualifications InstructorQualification[]
+  assignments    Assignment[]
+  availability   AvailabilityBlock[]
+
+  @@index([externalId])
+  @@index([employeeId])
+}
+
+model AdministratorProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Device {
+  id          String      @id @default(cuid())
+  userId      String
+  label       String?
+  platform    String
+  lastSeenAt  DateTime?
+  createdAt   DateTime    @default(now())
+  revokedAt   DateTime?
+  user        User        @relation(fields: [userId], references: [id])
+  pushTokens  PushToken[]
+}
+
+model PushToken {
+  id          String    @id @default(cuid())
+  deviceId    String
+  expoToken   String    @unique
+  enabled     Boolean   @default(true)
+  invalidAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  device      Device    @relation(fields: [deviceId], references: [id])
+}
+
+model RefreshSession {
+  id           String    @id @default(cuid())
+  userId       String
+  tokenHash    String    @unique
+  deviceId     String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  rotatedAt    DateTime?
+  user         User      @relation(fields: [userId], references: [id])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model Qualification {
+  id          String                    @id @default(cuid())
+  code        String                    @unique
+  name        String
+  description String?
+  instructors InstructorQualification[]
+  courses     CourseRequirement[]
+}
+
+model InstructorQualification {
+  instructorId    String
+  qualificationId String
+  expiresAt       DateTime?
+  instructor      InstructorProfile @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+  qualification   Qualification     @relation(fields: [qualificationId], references: [id])
+
+  @@id([instructorId, qualificationId])
+}
+
+model Course {
+  id                      String              @id @default(cuid())
+  dynamicsId              String?
+  referenceNumber         String              @unique
+  title                   String
+  certificationType       String
+  description             String?
+  status                  CourseStatus        @default(SCHEDULED)
+  numberOfInstructors     Int                 @default(1)
+  notes                   String?
+  internalAdminNotes      String?
+  equipmentNotes          String?
+  arrivalInstructions     String?
+  startsAt                DateTime
+  endsAt                  DateTime
+  timezone                String              @default("America/Toronto")
+  locationName            String?
+  address                 String?
+  roomInstructions        String?
+  deliveryType            DeliveryType        @default(IN_PERSON)
+  virtualMeetingUrl       String?
+  maximumAttendance       Int?
+  currentAttendeeCount    Int?
+  cancellationReason      String?
+  dynamicsLastModifiedAt  DateTime?
+  dynamicsVersion         String?
+  lastSyncedAt            DateTime?
+  syncState               SyncState           @default(LOCAL_ONLY)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  deletedAt               DateTime?
+  attendees               CourseAttendee[]
+  requirements            CourseRequirement[]
+  assignments             Assignment[]
+
+  @@index([dynamicsId])
+  @@index([startsAt])
+  @@index([status])
+  @@index([syncState])
+}
+
+model CourseAttendee {
+  id        String   @id @default(cuid())
+  courseId  String
+  fullName  String
+  email     String?
+  phone     String?
+  createdAt DateTime @default(now())
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+model CourseRequirement {
+  courseId         String
+  qualificationId  String
+  course           Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  qualification    Qualification @relation(fields: [qualificationId], references: [id])
+
+  @@id([courseId, qualificationId])
+}
+
+model Assignment {
+  id                 String               @id @default(cuid())
+  dynamicsId          String?
+  courseId            String
+  instructorId        String
+  status              AssignmentStatus    @default(PENDING)
+  assignedByUserId    String?
+  declineReason       String?
+  notificationSentAt  DateTime?
+  respondedAt         DateTime?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  lastSyncedAt         DateTime?
+  syncState            SyncState           @default(LOCAL_ONLY)
+  course              Course              @relation(fields: [courseId], references: [id])
+  instructor          InstructorProfile   @relation(fields: [instructorId], references: [id])
+  responses           AssignmentResponse[]
+
+  @@index([dynamicsId])
+  @@index([courseId])
+  @@index([instructorId])
+  @@index([status])
+  @@unique([courseId, instructorId, status])
+}
+
+model AssignmentResponse {
+  id            String           @id @default(cuid())
+  assignmentId  String
+  status        AssignmentStatus
+  reason        String?
+  createdAt     DateTime         @default(now())
+  assignment    Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+}
+
+model AvailabilityBlock {
+  id             String                  @id @default(cuid())
+  instructorId   String
+  startsAt       DateTime
+  endsAt         DateTime
+  type           AvailabilityType
+  note           String?
+  timezone       String                  @default("America/Toronto")
+  externalId     String?
+  syncState      SyncState               @default(LOCAL_ONLY)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  deletedAt      DateTime?
+  instructor     InstructorProfile       @relation(fields: [instructorId], references: [id])
+  recurrence     AvailabilityRecurrence?
+  changes        AvailabilityChange[]
+
+  @@index([instructorId])
+  @@index([startsAt, endsAt])
+  @@index([externalId])
+}
+
+model AvailabilityRecurrence {
+  id             String            @id @default(cuid())
+  availabilityId String            @unique
+  rule           String
+  until          DateTime?
+  availability   AvailabilityBlock @relation(fields: [availabilityId], references: [id], onDelete: Cascade)
+}
+
+model AvailabilityChange {
+  id             String            @id @default(cuid())
+  availabilityId String?
+  instructorId   String
+  action         String
+  before         Json?
+  after          Json?
+  note           String?
+  auditRef       String            @unique
+  createdAt      DateTime          @default(now())
+  availability   AvailabilityBlock? @relation(fields: [availabilityId], references: [id])
+}
+
+model Notification {
+  id            String                 @id @default(cuid())
+  userId        String
+  type          String
+  title         String
+  body          String
+  deepLink      String?
+  idempotencyKey String                @unique
+  createdAt     DateTime              @default(now())
+  user          User                   @relation(fields: [userId], references: [id])
+  deliveries    NotificationDelivery[]
+
+  @@index([userId])
+}
+
+model NotificationDelivery {
+  id             String       @id @default(cuid())
+  notificationId String
+  pushTokenId    String?
+  status         String
+  providerId     String?
+  error          String?
+  deliveredAt    DateTime?
+  createdAt      DateTime     @default(now())
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+}
+
+model EmailMessage {
+  id             String               @id @default(cuid())
+  template       String
+  to             String
+  subject        String
+  htmlBody       String
+  textBody       String
+  idempotencyKey String               @unique
+  status         String               @default("QUEUED")
+  providerId     String?
+  createdAt      DateTime             @default(now())
+  sentAt         DateTime?
+  events         EmailDeliveryEvent[]
+}
+
+model EmailDeliveryEvent {
+  id        String       @id @default(cuid())
+  emailId   String?
+  providerEventId String?
+  event     String
+  payload   Json?
+  createdAt DateTime     @default(now())
+  email     EmailMessage? @relation(fields: [emailId], references: [id])
+
+  @@index([providerEventId])
+}
+
+model IntegrationConfiguration {
+  id          String             @id @default(cuid())
+  service     IntegrationService @unique
+  status      IntegrationStatus  @default(NOT_CONFIGURED)
+  safeConfig  Json?
+  lastCheckedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model IntegrationSyncState {
+  id             String             @id @default(cuid())
+  service         IntegrationService
+  entity          String
+  lastCursor      String?
+  lastSyncedAt    DateTime?
+  status          IntegrationStatus  @default(NOT_CONFIGURED)
+
+  @@unique([service, entity])
+}
+
+model IntegrationSyncRun {
+  id          String             @id @default(cuid())
+  service     IntegrationService
+  entity      String
+  mode        String
+  status      String
+  startedAt   DateTime           @default(now())
+  completedAt DateTime?
+  summary     Json?
+  errors      IntegrationError[]
+}
+
+model IntegrationError {
+  id          String              @id @default(cuid())
+  syncRunId   String?
+  service     IntegrationService
+  entity      String?
+  recordId    String?
+  code        String
+  message     String
+  retryable   Boolean             @default(false)
+  createdAt   DateTime            @default(now())
+  syncRun     IntegrationSyncRun?  @relation(fields: [syncRunId], references: [id])
+}
+
+model IntegrationConflict {
+  id             String   @id @default(cuid())
+  localEntity    String
+  localRecordId  String
+  externalRecordId String?
+  localVersion   String?
+  externalVersion String?
+  conflictType   String
+  resolutionStatus String @default("OPEN")
+  resolutionMethod String?
+  resolvedByUserId String?
+  detectedAt     DateTime @default(now())
+  resolvedAt     DateTime?
+
+  @@index([localEntity, localRecordId])
+}
+
+model ExternalRecordLink {
+  id              String             @id @default(cuid())
+  service          IntegrationService
+  localEntity      String
+  localRecordId    String
+  externalRecordId String
+  matchMethod      String
+  reviewedByUserId String?
+  createdAt        DateTime           @default(now())
+
+  @@unique([service, localEntity, localRecordId])
+  @@index([externalRecordId])
+}
+
+model WebhookEvent {
+  id             String             @id @default(cuid())
+  service         IntegrationService
+  eventId         String
+  eventType       String
+  payloadSummary  Json?
+  status          String             @default("RECEIVED")
+  receivedAt      DateTime           @default(now())
+  processedAt     DateTime?
+  error           String?
+
+  @@unique([service, eventId])
+}
+
+model BackgroundJobRecord {
+  id             String   @id @default(cuid())
+  queueName      String
+  jobName        String
+  providerJobId  String?
+  idempotencyKey String?  @unique
+  status         String
+  attempts       Int      @default(0)
+  lastError      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorId     String?
+  action      String
+  entityType  String
+  entityId    String?
+  requestId   String?
+  ipAddress   String?
+  deviceInfo  String?
+  before      Json?
+  after       Json?
+  source      String
+  createdAt   DateTime @default(now())
+  actor       User?    @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  type      String
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+}

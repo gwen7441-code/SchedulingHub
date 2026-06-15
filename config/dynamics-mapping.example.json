@@ -1,0 +1,55 @@
+{
+  "instructor": {
+    "table": "new_instructors",
+    "id": "new_instructorid",
+    "firstName": "new_firstname",
+    "lastName": "new_lastname",
+    "email": "emailaddress1",
+    "phone": "telephone1",
+    "employeeId": "new_employeeid",
+    "status": "statecode",
+    "qualifications": "new_qualifications",
+    "lastModified": "modifiedon"
+  },
+  "course": {
+    "table": "new_courses",
+    "id": "new_courseid",
+    "reference": "new_reference",
+    "title": "new_title",
+    "certificationType": "new_certificationtype",
+    "description": "new_description",
+    "startsAt": "new_startsat",
+    "endsAt": "new_endsat",
+    "timezone": "new_timezone",
+    "locationName": "new_locationname",
+    "address": "new_address",
+    "deliveryType": "new_deliverytype",
+    "attendeeCount": "new_attendeecount",
+    "maximumAttendees": "new_maximumattendees",
+    "status": "new_status",
+    "requiredQualifications": "new_requiredqualifications",
+    "notes": "new_notes",
+    "lastModified": "modifiedon"
+  },
+  "assignment": {
+    "table": "new_assignments",
+    "id": "new_assignmentid",
+    "courseLookup": "new_courseid",
+    "instructorLookup": "new_instructorid",
+    "status": "new_status",
+    "assignedAt": "new_assignedat",
+    "respondedAt": "new_respondedat",
+    "declineReason": "new_declinereason",
+    "lastModified": "modifiedon"
+  },
+  "availability": {
+    "table": "new_availability",
+    "id": "new_availabilityid",
+    "instructorLookup": "new_instructorid",
+    "startsAt": "new_startsat",
+    "endsAt": "new_endsat",
+    "type": "new_type",
+    "note": "new_note",
+    "lastModified": "modifiedon"
+  }
+}

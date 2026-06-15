@@ -1,0 +1,33 @@
+{
+  "name": "first-aid-instructor-scheduler",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Production-ready first aid instructor scheduling monorepo.",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @first-aid/api --filter @first-aid/worker dev",
+    "dev:mobile": "pnpm --filter @first-aid/mobile dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:generate": "pnpm --filter @first-aid/api prisma:generate",
+    "db:migrate": "pnpm --filter @first-aid/api prisma:migrate",
+    "db:seed": "pnpm --filter @first-aid/api prisma:seed",
+    "dynamics:validate": "pnpm --filter @first-aid/api dynamics:validate",
+    "dynamics:test-write": "pnpm --filter @first-aid/api dynamics:test-write",
+    "dynamics:sync": "pnpm --filter @first-aid/api dynamics:sync",
+    "dynamics:sync:courses": "pnpm --filter @first-aid/api dynamics:sync:courses",
+    "dynamics:sync:instructors": "pnpm --filter @first-aid/api dynamics:sync:instructors",
+    "dynamics:sync:assignments": "pnpm --filter @first-aid/api dynamics:sync:assignments",
+    "dynamics:sync:availability": "pnpm --filter @first-aid/api dynamics:sync:availability"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1"
+  }
+}

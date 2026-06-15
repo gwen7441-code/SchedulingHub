@@ -1,0 +1,38 @@
+{
+  "name": "@first-aid/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "build": "expo export",
+    "lint": "eslint app src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^14.0.4",
+    "@react-native-community/datetimepicker": "^8.2.0",
+    "@tanstack/react-query": "^5.62.7",
+    "expo": "^52.0.23",
+    "expo-constants": "^17.0.3",
+    "expo-linking": "^7.0.3",
+    "expo-notifications": "^0.29.13",
+    "expo-router": "^4.0.15",
+    "expo-secure-store": "^14.0.0",
+    "react": "18.3.1",
+    "react-hook-form": "^7.54.2",
+    "react-native": "0.76.5",
+    "react-native-calendars": "^1.1307.0",
+    "react-native-safe-area-context": "^4.12.0",
+    "react-native-screens": "^4.4.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

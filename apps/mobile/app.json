@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "First Aid Instructor Scheduler",
+    "slug": "first-aid-instructor-scheduler",
+    "scheme": "firstaidscheduler",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.company.firstaidscheduler"
+    },
+    "android": {
+      "package": "com.company.firstaidscheduler"
+    },
+    "plugins": ["expo-router", "expo-secure-store", "expo-notifications"],
+    "extra": {
+      "apiUrl": "http://localhost:3000/api/v1",
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
