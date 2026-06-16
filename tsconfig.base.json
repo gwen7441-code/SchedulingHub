@@ -1,17 +1,25 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020"],
+    "moduleResolution": "bundler",
+    "allowJs": true,
     "strict": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "baseUrl": ".",
     "paths": {
-      "@first-aid/shared": ["packages/shared/src/index.ts"],
-      "@first-aid/config": ["packages/config/src/index.ts"]
+      "@/*": ["./packages/*/src"],
+      "@first-aid/*": ["./packages/*/src"],
+      "@first-aid/shared/*": ["./packages/shared/src/*"],
+      "@first-aid/config/*": ["./packages/config/src/*"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist", "build", "coverage"]
 }
